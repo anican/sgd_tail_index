@@ -9,7 +9,7 @@ import numpy as np
 def get_layerWise_norms(net):
     w = []
     g = []
-    for p in net.parameters():    
+    for p in net.parameters():
         if p.requires_grad:
             w.append(p.view(-1).norm())
             g.append(p.grad.view(-1).norm())
@@ -23,7 +23,7 @@ def linear_hinge_loss(output, target):
     delta[delta <= 0] = 0
     return delta.mean()
 
-def get_grads(model): 
+def get_grads(model):
     # wrt data at the current step
     res = []
     for p in model.parameters():
@@ -54,10 +54,10 @@ def alpha_estimator2(m, k, X):
     Y_log_norm = torch.log(Y.norm(dim=1) + eps)
     X_log_norm = torch.log(X.norm(dim=1) + eps)
 
-    # This can be implemented more efficiently by using 
-    # the np.partition function, which currently doesn't 
+    # This can be implemented more efficiently by using
+    # the np.partition function, which currently doesn't
     # exist in pytorch: may consider passing the tensor to np
-    
+
     Yk = torch.sort(Y_log_norm)[0][k-1]
     Xk = torch.sort(X_log_norm)[0][m*k-1]
     diff = (Yk - Xk) / math.log(m)
@@ -75,21 +75,21 @@ def get_data(args):
         data_class = 'CIFAR10'
         num_classes = 10
         stats = {
-            'mean': [0.491, 0.482, 0.447], 
+            'mean': [0.491, 0.482, 0.447],
             'std': [0.247, 0.243, 0.262]
-            } 
+            }
     elif args.dataset == 'cifar100':
         data_class = 'CIFAR100'
         num_classes = 100
         stats = {
-            'mean': [0.5071, 0.4867, 0.4408] , 
+            'mean': [0.5071, 0.4867, 0.4408] ,
             'std': [0.2675, 0.2565, 0.2761]
-            } 
+            }
     elif args.dataset == 'mnist':
         data_class = 'MNIST'
         num_classes = 10
         stats = {
-            'mean': [0.1307], 
+            'mean': [0.1307],
             'std': [0.3081]
             }
     else:
@@ -102,18 +102,18 @@ def get_data(args):
         lambda t: t.type(torch.get_default_dtype()),
         transforms.Normalize(**stats)
         ]
-        
+
     # get tr and te data with the same normalization
     tr_data = getattr(datasets, data_class)(
-        root=args.path, 
-        train=True, 
+        root=args.path,
+        train=True,
         download=True,
         transform=transforms.Compose(trans)
         )
 
     te_data = getattr(datasets, data_class)(
-        root=args.path, 
-        train=False, 
+        root=args.path,
+        train=False,
         download=True,
         transform=transforms.Compose(trans)
         )
@@ -121,19 +121,19 @@ def get_data(args):
     # get tr_loader for train/eval and te_loader for eval
     train_loader = torch.utils.data.DataLoader(
         dataset=tr_data,
-        batch_size=args.batch_size_train, 
+        batch_size=args.batch_size_train,
         shuffle=False,
         )
 
     train_loader_eval = torch.utils.data.DataLoader(
         dataset=tr_data,
-        batch_size=args.batch_size_eval, 
+        batch_size=args.batch_size_eval,
         shuffle=False,
         )
 
     test_loader_eval = torch.utils.data.DataLoader(
         dataset=te_data,
-        batch_size=args.batch_size_eval, 
+        batch_size=args.batch_size_eval,
         shuffle=False,
         )
 

@@ -7,16 +7,15 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 from models import alexnet, fc
-from utils import get_id, get_data, accuracy
+from utils import get_data, accuracy
 from utils import get_grads, alpha_estimator, alpha_estimator2
 from utils import linear_hinge_loss, get_layerWise_norms
 
 
 def eval(eval_loader, net, crit, opt, args, test=True):
-
     net.eval()
 
-    # run over both test and train set    
+    # run over both test and train set
     total_size = 0
     total_loss = 0
     total_acc = 0
@@ -30,7 +29,7 @@ def eval(eval_loader, net, crit, opt, args, test=True):
         x, y = x.to(args.device), y.to(args.device)
         opt.zero_grad()
         out = net(x)
-        
+
         outputs.append(out)
 
         loss = crit(out, y)
@@ -49,25 +48,25 @@ def eval(eval_loader, net, crit, opt, args, test=True):
     grads = torch.cat(grads).view(-1, M)
     mean_grad = grads.sum(0) / P
     noise_norm = (grads - mean_grad).norm(dim=1)
-    
-    N = M * P 
+
+    N = M * P
 
     for i in range(1, 1 + int(math.sqrt(N))):
         if N%i == 0:
             m = i
     alpha = alpha_estimator(m, (grads - mean_grad).view(-1, 1))
-    
+
     del grads
     del mean_grad
-    
+
     hist = [
-        total_loss / total_size, 
+        total_loss / total_size,
         total_acc / total_size,
         alpha.item()
         ]
 
     print(hist)
-    
+
     return hist, outputs, noise_norm
 
 
@@ -92,7 +91,7 @@ if __name__ == '__main__':
     parser.add_argument('--scale', default=64, type=int,
         help='scale of the number of convolutional filters')
     parser.add_argument('--depth', default=3, type=int)
-    parser.add_argument('--width', default=100, type=int, 
+    parser.add_argument('--width', default=100, type=int,
         help='width of fully connected layers')
     parser.add_argument('--save_dir', default='results/', type=str)
     parser.add_argument('--verbose', action='store_true', default=False)
@@ -107,7 +106,7 @@ if __name__ == '__main__':
     args.use_cuda = not args.no_cuda and torch.cuda.is_available()
     args.device = torch.device('cuda' if args.use_cuda else 'cpu')
     torch.manual_seed(args.seed)
-    
+
     print(args)
 
     # training setup
@@ -122,32 +121,32 @@ if __name__ == '__main__':
         net = alexnet(ch=args.scale, num_classes=num_classes).to(args.device)
 
     print(net)
-    
+
     opt = optim.SGD(
-        net.parameters(), 
-        lr=args.lr, 
+        net.parameters(),
+        lr=args.lr,
         momentum=args.mom,
         weight_decay=args.wd
         )
 
     if args.lr_schedule:
         milestone = int(args.iterations / 3)
-        scheduler = optim.lr_scheduler.MultiStepLR(opt, 
+        scheduler = optim.lr_scheduler.MultiStepLR(opt,
             milestones=[milestone, 2*milestone],
             gamma=0.5)
-    
+
     if args.criterion == 'NLL':
         crit = nn.CrossEntropyLoss().to(args.device)
     elif args.criterion == 'linear_hinge':
         crit = linear_hinge_loss
-    
+
     def cycle_loader(dataloader):
         while 1:
             for data in dataloader:
                 yield data
 
     circ_train_loader = cycle_loader(train_loader)
-    
+
     # training logs per iteration
     training_history = []
     weight_grad_history = []
@@ -175,7 +174,7 @@ if __name__ == '__main__':
                 STOP = True
 
         net.train()
-        
+
         x, y = x.to(args.device), y.to(args.device)
 
         opt.zero_grad()
@@ -211,7 +210,7 @@ if __name__ == '__main__':
             noise_norm_history_TEST.append(te_noise_norm)
             noise_norm_history_TRAIN.append(tr_noise_norm)
 
-            
+
             if not os.path.exists(args.save_dir):
                 os.makedirs(args.save_dir)
             else:
@@ -223,7 +222,7 @@ if __name__ == '__main__':
             torch.save(te_outputs, args.save_dir + '/te_outputs.pyT')
             torch.save(tr_outputs, args.save_dir + '/tr_outputs.pyT')
             # save the model
-            torch.save(net, args.save_dir + '/net.pyT') 
+            torch.save(net, args.save_dir + '/net.pyT')
             # save the logs
             torch.save(training_history, args.save_dir + '/training_history.hist')
             torch.save(weight_grad_history, args.save_dir + '/weight_history.hist')
@@ -231,7 +230,7 @@ if __name__ == '__main__':
             torch.save(evaluation_history_TRAIN, args.save_dir + '/evaluation_history_TRAIN.hist')
             torch.save(noise_norm_history_TEST, args.save_dir + '/noise_norm_history_TEST.hist')
             torch.save(noise_norm_history_TRAIN, args.save_dir + '/noise_norm_history_TRAIN.hist')
-            
+
             break
 
-    
+

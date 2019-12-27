@@ -10,7 +10,7 @@ if not os.path.exists(base_path):
     os.makedirs(base_path)
 
 # server setup
-launcher = "srun --nodes=1 --gres=gpu:1 --time=40:00:00 --mem=60G" # THIS IS AN EXAMPLE!!!
+# launcher = "srun --nodes=1 --gres=gpu:1 --time=40:00:00 --mem=60G" # THIS IS AN EXAMPLE!!!
 
 # experimental setup
 width = [4, 8, 16, 32, 64, 128, 256, 512, 1024]
@@ -31,7 +31,7 @@ for w, dep, s, d, l, m in grid:
         print('folder already exists, quitting')
         continue
 
-    cmd = launcher + ' '
+    cmd = ''
     cmd += 'python main.py '
     cmd += '--save_dir {} '.format(save_dir)
     cmd += '--width {} '.format(w)
@@ -49,5 +49,5 @@ for w, dep, s, d, l, m in grid:
 
     f = open(save_dir + '.log', 'w')
     subprocess.Popen(cmd.split(), stdout=f, stderr=f)#.wait()
-    
-    
+
+

@@ -1,17 +1,17 @@
 # Identical copies of two AlexNet models
 import torch
 import torch.nn as nn
-import copy 
+import copy
 
 class FullyConnected(nn.Module):
 
     def __init__(self, input_dim=28*28 , width=50, depth=3, num_classes=10):
         super(FullyConnected, self).__init__()
-        self.input_dim = input_dim 
+        self.input_dim = input_dim
         self.width = width
         self.depth = depth
         self.num_classes = num_classes
-        
+
         layers = self.get_layers()
 
         self.fc = nn.Sequential(
@@ -34,13 +34,13 @@ class FullyConnected(nn.Module):
         return x
 
 
-# This is a copy from online repositories 
+# This is a copy from online repositories
 class AlexNet(nn.Module):
 
     def __init__(self, input_height=32, input_width=32, input_channels=3, ch=64, num_classes=1000):
         # ch is the scale factor for number of channels
         super(AlexNet, self).__init__()
-        
+
         self.input_height = input_height
         self.input_width = input_width
         self.input_channels = input_channels
@@ -60,7 +60,7 @@ class AlexNet(nn.Module):
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=3, stride=2),
         )
-        
+
         self.size = self.get_size()
         print(self.size)
         a = torch.tensor(self.size).float()
@@ -101,7 +101,7 @@ def fc(**kwargs):
 
 if __name__ == '__main__':
     # testing
-    
+
     x = torch.randn(5, 1, 32, 32)
     net = FullyConnected(input_dim=32*32, width=123)
     print(net(x))
